@@ -57,7 +57,7 @@ def process_petri_dish(img_name):
     plt.savefig(processed_img_path)
     return processed_image_name
 
-def process_image(filename):
+def process_image(img_name):
     img_path = os.path.join(app.config['UPLOAD_FOLDER'], img_name)   
     img = imread(img_path)
     ast = astimp.AST(img)

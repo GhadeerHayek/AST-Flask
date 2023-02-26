@@ -74,7 +74,7 @@ def analyze_image_data():
         # file is saved in the upload folder 
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         # process the image and prepare the data list
-        mobile_list = process_ast_image(filename)
+        mobile_list = process_image(filename)
         # return JSON 
         return jsonify(mobile_list)
 
