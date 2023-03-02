@@ -17,7 +17,7 @@
 		<img src="{{ url_for('display_image', filename=filename) }}">
 	</div>
 {% endif %}
-<form method="post" action="/api/test" enctype="multipart/form-data">
+<form method="post" action="/api/cropimage" enctype="multipart/form-data">
     <dl>
 		<p>
 			<input type="file" name="file" autocomplete="off" required>
