@@ -9,7 +9,7 @@ from imageio.v2 import imread, imwrite
 from flask.json import jsonify
 
 
-ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif', 'jfif'])
 
 def allowed_file(filename):
 	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -77,6 +77,28 @@ def analyze_image_data():
         mobile_list = AST.process_image(filename)
         # return JSON 
         return jsonify(mobile_list)
+
+@app.route('/api/cropimage', methods=['post'])
+def analyze_image_crops():
+    # check if a file is sent in the request 
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    file = request.files['file']
+    # check if the file has a name 
+    if file.filename == '':
+        flash('No image selected for uploading')
+        return redirect(request.url)
+    # check if the file exists and its extension is allowd
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        # file is saved in the upload folder 
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        # process the image and prepare the data list
+        dumb_list = AST.generate_image_crops(filename)
+        return JSON 
+        return jsonify(dumb_list)
+
 
 if __name__ == "__main__":
     app.run(debug=True, host= '0.0.0.0', port=5000)

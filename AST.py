@@ -73,3 +73,15 @@ def process_image(img_name):
         mobile_list.append(loop_dict)
 
     return mobile_list    
+
+def generate_image_crops(img_name):
+    img_path = os.path.join(app.config['UPLOAD_FOLDER'], img_name)   
+    img = imread(img_path)
+    ast = astimp.AST(img)
+    for index, roi in enumerate(ast.rois):
+        plt.imshow(astimp_tools.image.subimage_by_roi(ast.crop,ast.rois[index]))
+        new_image_name ='crop-image-'+str(index)+'.jpg'
+        cropped_img_path = os.path.join(app.config['CROP_FOLDER'], new_image_name)   
+        plt.savefig(cropped_img_path)
+    
+    return [{12: "123412"}]
