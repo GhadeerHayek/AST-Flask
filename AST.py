@@ -57,6 +57,10 @@ def process_petri_dish(img_name):
     plt.savefig(processed_img_path)
     return processed_image_name
 
+"""
+    process_image() receives an img as an input, returns its anaylsis as json data. 
+    the returned data includes each antibiotic label, center, radius, diameter. 
+"""
 def process_image(img_name):
     img_path = os.path.join(app.config['UPLOAD_FOLDER'], img_name)   
     img = imread(img_path)
@@ -73,40 +77,42 @@ def process_image(img_name):
         mobile_list.append(loop_dict)
 
     return mobile_list    
-
+"""
+    genertate_image_crops() is a helper function that recieves an ast object - of an image - ,
+     the main purpose is to crop region of interests from the original images and save them into CROP folder. 
+"""
 def generate_image_crops(ast):
+    # TODO: instead of cropped images being saved under the CROP folder directory, 
+    # make a directory for each image analysis request and save the cropped images to a directory under the CROP directory.
     for index, roi in enumerate(ast.rois):
         plt.imshow(astimp_tools.image.subimage_by_roi(ast.crop,ast.rois[index]))
         new_image_name ='cropped-image-'+str(index)+'.jpg'
         cropped_img_path = os.path.join(app.config['CROP_FOLDER'], new_image_name)   
         plt.savefig(cropped_img_path)
-    
+"""
+    process_image_to_crops() takes an image as a parameter, returns a list that contains image path, its center in the ROI, radius, width, and height of the ROI.    
+""" 
 def process_image_to_crops (img_name):
     img_path = os.path.join(app.config['UPLOAD_FOLDER'], img_name)   
     img = imread(img_path)
     ast = astimp.AST(img)
+    # a list for ROI data 
     return_list_data = []
+    # a list for images to be included in the reponse.
     return_list_images = [] 
-    # TODO: create a directory for each image
-    # suggestion: 
-    # call for helper function that takes AST object as an input, generates cropped images in CROPS_FOLDER 
-    # both helper function and this function are using the same AST object. 
     generate_image_crops(ast)
-    # but why two loops? maybe it's better if it were one loop that crops images, saves them, prepares data?
-    # loop that prepares the data 
-    # must create a list with images that were cropped, centerX, centerY, radius
+    # for each ROI in AST ROIs
     for index, roi in enumerate(ast.rois):
         # dict that contains single roi data 
         roi_dict = {}
         cropped_image_name = 'cropped-image-'+str(index)+'.jpg'
         return_list_images.append(os.path.join(app.config['CROP_FOLDER'], cropped_image_name))
-        roi_dict['centerX'] = roi.x 
-        # roi_dict['centerX'] = ast.circles[index].center[0]
-        roi_dict['centerY'] = roi.y 
-        # roi_dict['centerY'] = ast.circles[index].center[1]
-        roi_dict['width'] = roi.width
-        roi_dict['height'] = roi.height 
-        roi_dict['disk_radius'] = ast.circles[index].radius
+        atb = ast.get_atb_by_idx(index)
+        roi_dict['centerX'] = atb.center_in_roi[0]
+        roi_dict['centerY'] = atb.center_in_roi[1]
+        roi_dict['width'] = atb.roi.width
+        roi_dict['height'] = atb.roi.height 
+        roi_dict['atb_radius'] = atb.pellet_circle.radius
         return_list_data.append(roi_dict)
     return return_list_data, return_list_images 
 
