@@ -74,40 +74,14 @@ def process_image(img_name):
 
     return mobile_list    
 
-def generate_image_crops(ast):
-    for index, roi in enumerate(ast.rois):
-        plt.imshow(astimp_tools.image.subimage_by_roi(ast.crop,ast.rois[index]))
-        new_image_name ='cropped-image-'+str(index)+'.jpg'
-        cropped_img_path = os.path.join(app.config['CROP_FOLDER'], new_image_name)   
-        plt.savefig(cropped_img_path)
-    
-def process_image_to_crops (img_name):
+def generate_image_crops(img_name):
     img_path = os.path.join(app.config['UPLOAD_FOLDER'], img_name)   
     img = imread(img_path)
     ast = astimp.AST(img)
-    return_list_data = []
-    return_list_images = [] 
-    # TODO: create a directory for each image
-    # suggestion: 
-    # call for helper function that takes AST object as an input, generates cropped images in CROPS_FOLDER 
-    # both helper function and this function are using the same AST object. 
-    generate_image_crops(ast)
-    # but why two loops? maybe it's better if it were one loop that crops images, saves them, prepares data?
-    # loop that prepares the data 
-    # must create a list with images that were cropped, centerX, centerY, radius
     for index, roi in enumerate(ast.rois):
-        # dict that contains single roi data 
-        roi_dict = {}
-        cropped_image_name = 'cropped-image-'+str(index)+'.jpg'
-        return_list_images.append(os.path.join(app.config['CROP_FOLDER'], cropped_image_name))
-        roi_dict['centerX'] = roi.x 
-        # roi_dict['centerX'] = ast.circles[index].center[0]
-        roi_dict['centerY'] = roi.y 
-        # roi_dict['centerY'] = ast.circles[index].center[1]
-        roi_dict['width'] = roi.width
-        roi_dict['height'] = roi.height 
-        roi_dict['disk_radius'] = ast.circles[index].radius
-        return_list_data.append(roi_dict)
-    return return_list_data, return_list_images 
-
-
+        plt.imshow(astimp_tools.image.subimage_by_roi(ast.crop,ast.rois[index]))
+        new_image_name ='crop-image-'+str(index)+'.jpg'
+        cropped_img_path = os.path.join(app.config['CROP_FOLDER'], new_image_name)   
+        plt.savefig(cropped_img_path)
+    
+    return [{12: "123412"}]
