@@ -7,6 +7,10 @@ import AST as AST
 import astimp
 from imageio.v2 import imread, imwrite
 from flask.json import jsonify
+# for image response 
+from flask import send_file
+import base64
+from io import BytesIO
 
 
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif', 'jfif'])
@@ -95,9 +99,19 @@ def analyze_image_crops():
         # file is saved in the upload folder 
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         # process the image and prepare the data list
-        dumb_list = AST.generate_image_crops(filename)
-        return JSON 
-        return jsonify(dumb_list)
+        # NOTE: i couldn't prepare a loop due to image upload in reponse 
+        # it had to be encoded and this is limited in sending one image at a time 
+
+        data, images = AST.process_image_to_crops(filename)
+        image_file = open(images[2], 'rb')
+        # the image is encoded, and in order to read it has to be decoded. The same encoding must be used. 
+        # BTW look at the drawing script, you can see request with image, response with an image, drawing and stuff. 
+        image_data = image_file.read()
+        encoded_image = base64.b64encode(image_data).decode('utf-8')
+        response_data = {'image':encoded_image, 'data':data[2]}
+        
+        return jsonify(response_data)
+
 
 
 if __name__ == "__main__":
