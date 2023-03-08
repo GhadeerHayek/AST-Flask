@@ -79,15 +79,21 @@ def process_image(img_name):
     return mobile_list    
 """
     genertate_image_crops() is a helper function that recieves an ast object - of an image - ,
-     the main purpose is to crop region of interests from the original images and save them into CROP folder. 
+     the main purpose is to crop region of interests from the original images and save each cropped
+     AST in a separate folder inside the CROP folder. 
 """
 def generate_image_crops(ast):
     # TODO: instead of cropped images being saved under the CROP folder directory, 
     # make a directory for each image analysis request and save the cropped images to a directory under the CROP directory.
+    # creating a directory for each AST image(all its rois together)
+    newDirName = 'cropped-AST-'+str(time.time())
+    parentDir = app.config['CROP_FOLDER']
+    newDirPath = os.path.join(parentDir, newDirName)
+    os.mkdir(newDirPath)
     for index, roi in enumerate(ast.rois):
         plt.imshow(astimp_tools.image.subimage_by_roi(ast.crop,ast.rois[index]))
         new_image_name ='cropped-image-'+str(index)+'.jpg'
-        cropped_img_path = os.path.join(app.config['CROP_FOLDER'], new_image_name)   
+        cropped_img_path = os.path.join(newDirPath, new_image_name)   
         plt.savefig(cropped_img_path)
 """
     process_image_to_crops() takes an image as a parameter, returns a list that contains image path, its center in the ROI, radius, width, and height of the ROI.    
