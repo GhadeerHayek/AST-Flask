@@ -83,9 +83,13 @@ def process_image(img_name):
      AST in a separate folder inside the CROP folder. 
 """
 def generate_image_crops(ast):
-    # TODO: instead of cropped images being saved under the CROP folder directory, 
-    # make a directory for each image analysis request and save the cropped images to a directory under the CROP directory.
-    # creating a directory for each AST image(all its rois together)
+    # DONE ->TODO: instead of cropped images being saved under the CROP folder directory,
+    # DONE ->make a directory for each image analysis request and save the cropped images to a directory under the CROP directory.
+    # ISSUE ->naming the directory uniquely to be able to retrieve the cropped ROIs from it later,
+    #         also, how will the program know which file to open later in the (process_image_to_crops) function
+    # POSSIBLE FIXES FOR THE ISSUE -> enable one and only one analysis for each petri dish, 
+    #                               meaning that each ROI will be uniquely named accroding to its parent AST image and we'll retrieve ROIs based on their names
+    # creating a directory for each AST image(all its rois together
     newDirName = 'cropped-AST-'+str(time.time())
     parentDir = app.config['CROP_FOLDER']
     newDirPath = os.path.join(parentDir, newDirName)
