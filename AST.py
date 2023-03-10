@@ -93,6 +93,8 @@ def generate_image_crops(ast):
         new_image_name ='cropped-image-'+str(index)+'.jpg'
         cropped_img_path = os.path.join(newDirPath, new_image_name)   
         plt.savefig(cropped_img_path)
+    # we can now send the Mobile the folder path and they loop through it to display each crop by itself
+    #(we can identify which folder they need by filtering the folders since we named them based on (time))
     return newDirPath
 """
     process_image_to_crops() takes an image as a parameter, returns a list that contains image path, its center in the ROI, radius, width, and height of the ROI.    
