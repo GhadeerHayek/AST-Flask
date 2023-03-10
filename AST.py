@@ -83,11 +83,6 @@ def process_image(img_name):
      AST in a separate folder inside the CROP folder. 
 """
 def generate_image_crops(ast):
-    # DONE ->TODO: instead of cropped images being saved under the CROP folder directory,
-    # DONE ->make a directory for each image analysis request and save the cropped images to a directory under the CROP directory.
-    # ISSUE ->naming the directory uniquely but also in a way that is identifiable
-    #         to be able to access directories later in the (process_image_to_crops) function using the directories name
-    # POSSIBLE FIXES FOR THE ISSUE -> naming based on the (ast) parameter attributes (cricles, pelletes.. etc)
     # creating a directory for each AST image(all its rois together)
     newDirName = 'cropped-AST-'+str(time.time())
     parentDir = app.config['CROP_FOLDER']
@@ -98,6 +93,7 @@ def generate_image_crops(ast):
         new_image_name ='cropped-image-'+str(index)+'.jpg'
         cropped_img_path = os.path.join(newDirPath, new_image_name)   
         plt.savefig(cropped_img_path)
+    return newDirPath
 """
     process_image_to_crops() takes an image as a parameter, returns a list that contains image path, its center in the ROI, radius, width, and height of the ROI.    
 """ 
