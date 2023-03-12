@@ -120,6 +120,10 @@ def display_image(filename):
 def send_img():
     if 'img_name' not in request.form and 'img_path' not in request.form:
         return "No image is provided!"
-
+    img_name = request.form['img_name']
+    img_path = request.form['img_path']
+    if img_name == '' or img_path == '':
+        # img_name is dummy -> not acceptable
+        return "Blank/empty images are not acceptable!"
 if __name__ == "__main__":
     app.run(debug=True, host= '0.0.0.0', port=5000)
