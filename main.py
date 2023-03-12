@@ -125,5 +125,9 @@ def send_img():
     if img_name == '' or img_path == '':
         # img_name is dummy -> not acceptable
         return "Blank/empty images are not acceptable!"
+    if img_name and allowed_file(img_name):
+        img = os.path.join(img_path, img_name)
+        return send_file(img)
+
 if __name__ == "__main__":
     app.run(debug=True, host= '0.0.0.0', port=5000)
