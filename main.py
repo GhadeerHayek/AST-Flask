@@ -117,7 +117,9 @@ def display_image(filename):
 	return redirect(url_for('static', filename='processed/' + filename), code=301)
 
 @app.route('/sendimg', methods=["POST"])
-
+def send_img():
+    if 'img_name' not in request.form and 'img_path' not in request.form:
+        return "No image is provided!"
 
 if __name__ == "__main__":
     app.run(debug=True, host= '0.0.0.0', port=5000)
