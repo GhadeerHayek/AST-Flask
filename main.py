@@ -116,20 +116,7 @@ def display_image(filename):
 	#print('display_image filename: ' + filename)
 	return redirect(url_for('static', filename='processed/' + filename), code=301)
 
-@app.route('/sendimg', methods=["POST"])
-def send_img():
-    if 'img_name' not in request.form and 'img_path' not in request.form:
-        # return error, since no img_name provided.
-        return 'No image is provided!'
-    img_name = request.form['img_name']
-    img_path = request.form['img_path']
-    if img_name == '' or img_path == '':
-        # img_name is dummy -> not acceptable
-        return 'Empty image file is not acceptable!'
-    if img_name and allowed_file(img_name):
-        # img = ""
-        img = os.path.join(img_path, img_name)
-        return send_file(img)
+
 
 if __name__ == "__main__":
     app.run(debug=True, host= '0.0.0.0', port=5000)
