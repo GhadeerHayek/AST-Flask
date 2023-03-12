@@ -116,6 +116,7 @@ def display_image(filename):
 	#print('display_image filename: ' + filename)
 	return redirect(url_for('static', filename='processed/' + filename), code=301)
 
+@app.route('/sendimg', methods=["POST"])
 
 
 if __name__ == "__main__":
