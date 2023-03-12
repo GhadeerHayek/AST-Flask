@@ -98,16 +98,13 @@ def analyze_image_crops():
         # scenario 2: create a table called attachments, each attachment has a unique id. Those list of IDs are returned in your response. 
         # when mobile needs to display an image, it would send a request to the backend to get this image with the ID of that image. 
        
-        # # NOTE: this code is for test purpose only, return one cropped image only 
-        # # TODO: if your cropped images were to be in a separate directory, then pay attention to the path of the opened image here. 
-        # data, images = AST.process_image_to_crops(filename)
-        # image_file = open(images[0], 'rb')      
-        # image_data = image_file.read()
-        # encoded_image = base64.b64encode(image_data).decode('utf-8')
-        # response_data = {'image':encoded_image, 'data':data[2]}
-        
-        num_of_crops, data = AST.process_image_to_crops(filename)
-        response_data = {'analysed crops': num_of_crops, 'crops details': data}
+        # NOTE: this code is for test purpose only, return one cropped image only 
+        # TODO: if your cropped images were to be in a separate directory, then pay attention to the path of the opened image here. 
+        data, images = AST.process_image_to_crops(filename)
+        image_file = open(images[0], 'rb')      
+        image_data = image_file.read()
+        encoded_image = base64.b64encode(image_data).decode('utf-8')
+        response_data = {'image':encoded_image, 'data':data[2]}
         
         return jsonify(response_data)
 

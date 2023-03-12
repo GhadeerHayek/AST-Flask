@@ -105,26 +105,20 @@ def process_image_to_crops (img_name):
     return_list_data = []
     # a list for images to be included in the reponse.
     return_list_images = [] 
-    # the path of the crops
-    img_dir = generate_image_crops(ast)
-    # the number of analysed crops
-    num_of_crops = 0
+    generate_image_crops(ast)
     # for each ROI in AST ROIs
     for index, roi in enumerate(ast.rois):
         # dict that contains single roi data 
         roi_dict = {}
         cropped_image_name = 'cropped-image-'+str(index)+'.jpg'
-        # return_list_images.append(os.path.join(app.config['CROP_FOLDER'], cropped_image_name))
+        return_list_images.append(os.path.join(app.config['CROP_FOLDER'], cropped_image_name))
         atb = ast.get_atb_by_idx(index)
-        roi_dict['img_name'] = cropped_image_name
-        roi_dict['img_folder'] = img_dir
         roi_dict['centerX'] = atb.center_in_roi[0]
         roi_dict['centerY'] = atb.center_in_roi[1]
         roi_dict['width'] = atb.roi.width
         roi_dict['height'] = atb.roi.height 
         roi_dict['atb_radius'] = atb.pellet_circle.radius
         return_list_data.append(roi_dict)
-        num_of_crops += 1
-    return num_of_crops, return_list_data
+    return return_list_data, return_list_images 
 
 
