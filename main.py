@@ -108,6 +108,11 @@ def analyze_image_crops():
         
         return jsonify(response_data)
 
+@app.route('/displayImg')
+def display_image(filename):
+	#print('display_image filename: ' + filename)
+	return redirect(url_for('static', filename='processed/' + filename), code=301)
+
 
 
 if __name__ == "__main__":
