@@ -57,6 +57,10 @@ def process_petri_dish(img_name):
     plt.savefig(processed_img_path)
     return processed_image_name
 
+"""
+    process_image() receives an img as an input, returns its anaylsis as json data. 
+    the returned data includes each antibiotic label, center, radius, diameter. 
+"""
 def process_image(img_name):
     img_path = os.path.join(app.config['UPLOAD_FOLDER'], img_name)   
     img = imread(img_path)
@@ -73,15 +77,56 @@ def process_image(img_name):
         mobile_list.append(loop_dict)
 
     return mobile_list    
-
-def generate_image_crops(img_name):
+"""
+    genertate_image_crops() is a helper function that recieves an ast object - of an image - ,
+     the main purpose is to crop region of interests from the original images and save each cropped
+     AST in a separate folder inside the CROP folder. 
+"""
+def generate_image_crops(ast):
+    # creating a directory for each AST image(all its rois together)
+    newDirName = 'cropped-AST-'+str(time.time())
+    parentDir = app.config['CROP_FOLDER']
+    newDirPath = os.path.join(parentDir, newDirName)
+    os.mkdir(newDirPath)
+    for index, roi in enumerate(ast.rois):
+        plt.imshow(astimp_tools.image.subimage_by_roi(ast.crop,ast.rois[index]))
+        new_image_name ='cropped-image-'+str(index)+'.jpg'
+        cropped_img_path = os.path.join(newDirPath, new_image_name)   
+        plt.axis('off')
+        plt.savefig(cropped_img_path, pad_inches=0, bbox_inches='tight')
+    # we can now send the Mobile the folder path and they loop through it to display each crop by itself
+    #(we can identify which folder they need by filtering the folders since we named them based on (time))
+    return newDirPath
+"""
+    process_image_to_crops() takes an image as a parameter, returns a list that contains image path, its center in the ROI, radius, width, and height of the ROI.    
+""" 
+def process_image_to_crops (img_name):
     img_path = os.path.join(app.config['UPLOAD_FOLDER'], img_name)   
     img = imread(img_path)
     ast = astimp.AST(img)
+    # a list for ROI data 
+    return_list_data = []
+    # # a list for images to be included in the reponse.
+    # return_list_images = [] 
+    img_dir = generate_image_crops(ast)
+    num_of_crops = 0
+    # for each ROI in AST ROIs
     for index, roi in enumerate(ast.rois):
-        plt.imshow(astimp_tools.image.subimage_by_roi(ast.crop,ast.rois[index]))
-        new_image_name ='crop-image-'+str(index)+'.jpg'
-        cropped_img_path = os.path.join(app.config['CROP_FOLDER'], new_image_name)   
-        plt.savefig(cropped_img_path)
-    
-    return [{12: "123412"}]
+        # dict that contains single roi data 
+        roi_dict = {}
+        cropped_image_name = 'cropped-image-'+str(index)+'.jpg'
+        # return_list_images.append(os.path.join(img_dir, cropped_image_name))
+        atb = ast.get_atb_by_idx(index)
+        roi_dict['img_name'] = cropped_image_name
+        roi_dict['img_folder'] = img_dir
+        roi_dict['centerX'] = atb.center_in_roi[0]
+        roi_dict['centerY'] = atb.center_in_roi[1]
+        roi_dict['width'] = atb.roi.width
+        roi_dict['height'] = atb.roi.height 
+        roi_dict['atb_radius'] = atb.pellet_circle.radius
+        return_list_data.append(roi_dict)
+        num_of_crops += 1
+    return num_of_crops, return_list_data
+    # return return_list_data, return_list_images 
+
+
