@@ -92,7 +92,8 @@ def generate_image_crops(ast):
         plt.imshow(astimp_tools.image.subimage_by_roi(ast.crop,ast.rois[index]))
         new_image_name ='cropped-image-'+str(index)+'.jpg'
         cropped_img_path = os.path.join(newDirPath, new_image_name)   
-        plt.savefig(cropped_img_path)
+        plt.axis('off')
+        plt.savefig(cropped_img_path, pad_inches=0, bbox_inches='tight')
     # we can now send the Mobile the folder path and they loop through it to display each crop by itself
     #(we can identify which folder they need by filtering the folders since we named them based on (time))
     return newDirPath
