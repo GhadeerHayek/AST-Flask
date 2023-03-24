@@ -117,13 +117,16 @@ def process_image_to_crops (img_name):
         cropped_image_name = 'cropped-image-'+str(index)+'.jpg'
         # return_list_images.append(os.path.join(img_dir, cropped_image_name))
         atb = ast.get_atb_by_idx(index)
+        diameter = ( (atb.inhibition.diameter)/2*ast.px_per_mm )
         roi_dict['img_name'] = cropped_image_name
         roi_dict['img_folder'] = img_dir
         roi_dict['centerX'] = atb.center_in_roi[0]
         roi_dict['centerY'] = atb.center_in_roi[1]
         roi_dict['width'] = atb.roi.width
         roi_dict['height'] = atb.roi.height 
-        roi_dict['atb_radius'] = atb.pellet_circle.radius
+        roi_dict['diameter'] = diameter
+#         roi_dict['atb_radius'] = atb.pellet_circle.radius
+
         return_list_data.append(roi_dict)
         num_of_crops += 1
     return num_of_crops, return_list_data
