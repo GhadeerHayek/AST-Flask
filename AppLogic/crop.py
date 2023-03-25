@@ -1,15 +1,16 @@
 import os
-from app import app
 import urllib.request
-from flask import Flask, flash, request, redirect, url_for, render_template
+from flask import Flask, flash, request, redirect, send_file, Blueprint
+from app import app
 from werkzeug.utils import secure_filename
-import AST as AST
+from AppLogic import AST as AST
 import astimp
 from imageio.v2 import imread, imwrite
 from flask.json import jsonify
-from flask import send_file
 
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+
+crop_blueprint = Blueprint("crop", __name__)
 
 
 def allowed_file(filename):
@@ -22,7 +23,7 @@ def allowed_file(filename):
 """
 
 
-@app.route('/api/cropimage', methods=['post'])
+@crop_blueprint.route('/api/cropimage', methods=['post'])
 def analyze_image_crops():
     #  if a file is not sent in the request -> don't procceed.
     if 'file' not in request.files:
@@ -52,7 +53,7 @@ def analyze_image_crops():
 """
 
 
-@app.route('/sendimg', methods=["POST"])
+@crop_blueprint.route('/sendimg', methods=["POST"])
 def send_img():
     # if image name and its path not in the request -> don't procceed.
     if 'img_name' not in request.form and 'img_path' not in request.form:
@@ -70,6 +71,6 @@ def send_img():
         img = os.path.join(img_path, img_name)
         return send_file(img)
 
-
-if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5000)
+@crop_blueprint.route('/')
+def mock_route():
+    return "Hello World?"

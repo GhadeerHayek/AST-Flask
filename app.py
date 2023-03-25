@@ -1,10 +1,19 @@
 from flask import Flask
-
-UPLOAD_FOLDER = 'static/uploads/'
-CROP_FOLDER = 'static/crops/'
+from flask_mysqldb import MySQL
+from database import init_app
+from config import Config
 
 app = Flask(__name__)
-app.secret_key = "secret key"
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['CROP_FOLDER'] = CROP_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+# initialize app with database - i guess - 
+init_app(app)
+
+# app configurations from file 
+app.config.from_object(Config)
+
+# App routes blueprints 
+from AppLogic.crop import crop_blueprint as crop_routes
+from AppLogic.authentication import auth_blueprint as auth_routes
+
+
+app.register_blueprint(crop_routes)
+app.register_blueprint(auth_routes)
