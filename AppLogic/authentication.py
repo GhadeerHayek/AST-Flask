@@ -16,3 +16,24 @@ def index():
     cursor.close()
     # do whatever you want with the results.
     return jsonify(results)
+
+""" 
+    This API performs SignUp operation 
+        - Input: username, email, and password.
+        - Output: the newly created user id
+"""
+#TODO
+@auth_blueprint.route('/auth/signup', methods=['POST'])
+def perform_signup():
+    pass 
+
+
+""" 
+    This API performs login operation 
+        - Input: email, password 
+        - Output: authentication token
+"""
+# TODO
+@auth_blueprint.route('/auth/login', methods=['POST'])
+def perform_login():
+    pass 
