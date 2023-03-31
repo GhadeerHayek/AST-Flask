@@ -23,7 +23,7 @@ def allowed_file(filename):
 """
 
 
-@crop_blueprint.route('/api/cropimage', methods=['post'])
+@crop_blueprint.route('/process/crops', methods=['post'])
 def analyze_image_crops():
     #  if a file is not sent in the request -> don't procceed.
     if 'file' not in request.files:
