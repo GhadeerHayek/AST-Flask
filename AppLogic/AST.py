@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, current_app
 from werkzeug.utils import secure_filename
 import matplotlib.pyplot as plt
 import astimp
@@ -9,6 +9,8 @@ from PIL import Image
 from imageio.v2 import imread, imwrite
 from app import app
 import time
+
+app = current_app
 
 """
     genertate_image_crops() is a helper function that recieves an ast object - of an image - ,
