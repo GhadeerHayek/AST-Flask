@@ -10,7 +10,7 @@ auth_blueprint = Blueprint("auth", __name__)
 # this is just a dummy route to check whether database connectivity works just fine.
 # also, so we can imagine how database operations will go.
 
-
+""" 
 @auth_blueprint.route('/database', methods=['GET'])
 def index():
     # begin by opening a cursor
@@ -22,7 +22,7 @@ def index():
     cursor.close()
     # do whatever you want with the results.
     return jsonify(results)
-
+"""
 
 """ 
     This API performs SignUp operation 
@@ -44,7 +44,7 @@ def perform_signup():
         password, str) and password.strip()
     check_email_condition = email and isinstance(email, str) and email.strip()
     # check all inputs to add to database
-    if username and password and email:
+    if check_username_condition and check_password_condition and check_email_condition:
         # TODO: first of all you should check for the uniqness of this data then consider saving
         # save to database and return response
         query = "INSERT INTO users (name,email,password) VALUES ('{0}','{1}','{2}')".format(
@@ -115,11 +115,10 @@ def perform_login():
             return jsonify(response_text)
 
 
-# authorize means decoding the token, to check data inside it whether it's valid or not. 
+# authorize means decoding the token, to check data inside it whether it's valid or not.
 def authorize_user(token, secret_key):
     try:
         payload = jwt.decode(token, secret_key, algorithms=["HS256"])
         return payload
     except jwt.DecodeError:
         return "invalid token"
-

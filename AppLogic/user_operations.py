@@ -5,6 +5,7 @@
 from flask import Flask, Blueprint,jsonify, current_app, request
 from database import mysql 
 import jwt
+from AppLogic.authentication import authorize_user
 # routes blueprint
 user_op_blueprint = Blueprint("user_op", __name__)
 
