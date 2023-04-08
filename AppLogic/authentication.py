@@ -116,4 +116,10 @@ def perform_login():
 
 
 # authorize means decoding the token, to check data inside it whether it's valid or not. 
- 
+def authorize_user(token, secret_key):
+    try:
+        payload = jwt.decode(token, secret_key, algorithms=["HS256"])
+        return payload
+    except jwt.DecodeError:
+        return "invalid token"
+

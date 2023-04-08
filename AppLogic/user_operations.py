@@ -22,8 +22,8 @@ def get_user_tests():
     token = request.cookies["access_token"]
     if not token:
         return jsonify({"error": "missing token"})
-    try:
-        payload = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
+    payload = authorize_user(token, current_app.config['SECRET_KEY'])
+    if payload != "invalid token":
         user_id = payload["id"]
         cursor = mysql.connection.cursor()
         query = "SELECT * from tests where user_id = {0}".format(user_id)
@@ -37,5 +37,6 @@ def get_user_tests():
             return jsonify({"tests_count": results_count, "data": result_dict})
         else:
             return jsonify({"tests_count": results_count, "data": []})
-    except jwt.DecodeError:
-        return jsonify({"error": "invalid token"})
+    else:
+        return jsonify({"error": payload})
+    
