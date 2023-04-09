@@ -46,22 +46,41 @@ def perform_signup():
     check_email_condition = email and isinstance(email, str) and email.strip()
     # check all inputs to add to database
     if check_username_condition and check_password_condition and check_email_condition:
-        # TODO: first of all you should check for the uniqness of this data then consider saving
-        # save to database and return response
-        query = "INSERT INTO users (name,email,password) VALUES ('{0}','{1}','{2}')".format(
-            username, email, password)
-        cursor = mysql.connection.cursor()
-        result = cursor.execute(query)
-        # all query data are considered as a temporary session data, all are cached and deleted after the session is over
-        # so i had to user commit to make the insertion permenant
-        mysql.connection.commit()
-        cursor.close()
-        if result:
-            # success
-            return jsonify({"success": "user created", "rows affected:": str(result)})
+        u_query = "SELECT email from users where email = %(user_email)s;"
+        u_cursor = mysql.connection.cursor()
+        u_cursor.execute(u_query, {"user_email":email})
+        u_result = u_cursor.fetchone()
+        u_cursor.close()
+        if u_result:
+            return jsonify({"status":"error", "message":"email is duplicated"})
+        else:
+            i_query = "INSERT INTO users (name, email, password) VALUES (%(user_name)s, %(user_email)s, %(user_password)s);"
+            i_cursor = mysql.connection.cursor()
+            i_result = i_cursor.execute(i_query, {"user_name": username, "user_email":email, "user_password": password})
+            mysql.connection.commit()
+            i_cursor.close()
+            if i_result:
+                return jsonify({"status":"success", "message":"user is created, rows affected: {0}".format(str(i_result))})
+            else:
+                return jsonify({"status": "failure", "message":"failed to create"})
     else:
         # return error
-        return jsonify({"error": "invalid output"})
+        return jsonify({"status": "error","message": "invalid input"})
+
+@auth_blueprint.route('/auth/mock', methods=['POST'])
+def mock():
+     # receive inputs
+    username = request.form['username']
+    password = request.form['password']
+    email = request.form['email']
+    
+    query = " SELECT email from users where email = %(user_email)s;"
+    cursor = mysql.connection.cursor()
+    cursor.execute(query, {"user_email":email})
+    result = cursor.fetchone()
+    if email == result[0]:
+        return jsonify({"message": "duplicated"})
+    return jsonify(result)
 
 
 """ 
