@@ -3,6 +3,7 @@ from flask import current_app
 from flask import Flask, Blueprint, jsonify, request, make_response
 from database import mysql
 import jwt
+from AppLogic import token as token_logic 
 
 # routes blueprint
 auth_blueprint = Blueprint("auth", __name__)
@@ -82,43 +83,26 @@ def perform_login():
         password, str) and password.strip()
     if check_username_condition and check_password_condition:
         # 2- perform queries on the database to locate the username and the password
-        # NOTE: those are dummy inputs for test purposes only, they are replaced with db queries.
-        # dummy_username = "Ghadeer"
-        # dummy_password = "ghadeer123"
         cursor = mysql.connection.cursor()
-        query = "SELECT * from users where name='{0}' and password='{1}'".format(
-            username, password)
-        cursor.execute(query)
+        # NOTE: .format is know for being not secured and vulnerable to sql injections
+        # query = "SELECT * from users where name='{0}' and password='{1}'".format(
+        #    username, password)
+        # but parameterized query ensures no sql injections by using the %s placeholder to convert whatever you put here to a string 
+        query_escape = """ SELECT * from users where name =%(username)s and password= %(password)s """
+        cursor.execute(query_escape, {'username':username, "password":password})
         result = cursor.fetchone()
         cursor.close()
         # 3- after query is performed, then you should check whether you got a username and a correct password
         # apparently, the return type is tuple
         # 4- if match is found -> create token based on the user record on the database -> return token
-        if len(result) > 0:
-            # a match is found
-            # generate token
-            token_payload = {
-                "id": result[0],
-                "name": result[1],
-                "email": result[2],
-                "password": result[3]
-            }
-            token = jwt.encode(
-                token_payload, current_app.config['SECRET_KEY'], algorithm='HS256')
-            # prepare response
-            response = make_response(jsonify(token_payload))
-            response.set_cookie('access_token', token, httponly=True)
-            return response
+        if result:
+            if len(result) > 0:
+                token = token_logic.generate_token(result, current_app.config['SECRET_KEY'])
+                # prepare response
+                response = make_response(jsonify({"status": 200, "message": "token is generated successfully."}))
+                response.set_cookie('access_token', token, httponly=True)
+                return response
         # 5- if no match, print an apropriate error message.
         else:
             response_text = {'error': 'Invalid credentials, login failed'}
             return jsonify(response_text)
-
-
-# authorize means decoding the token, to check data inside it whether it's valid or not.
-def authorize_user(token, secret_key):
-    try:
-        payload = jwt.decode(token, secret_key, algorithms=["HS256"])
-        return payload
-    except jwt.DecodeError:
-        return "invalid token"
