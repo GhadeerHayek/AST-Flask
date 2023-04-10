@@ -1,15 +1,10 @@
-import os
-import urllib.request
-from flask import Flask, flash, request, redirect, send_file, Blueprint, current_app
+import os, astimp, jwt
+from flask import Flask, flash, request, redirect, send_file, Blueprint, current_app, jsonify
 from app import app
 from werkzeug.utils import secure_filename
 from AppLogic import AST as AST
 from AppLogic.token import verify_token
-import astimp
-import jwt
-from database import mysql 
-from imageio.v2 import imread, imwrite
-from flask.json import jsonify
+from database import mysql
 
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 
@@ -28,14 +23,15 @@ def allowed_file(filename):
 
 @crop_blueprint.route('/process/crops', methods=['POST'])
 def analyze_image_crops():
-    # using the "acess_token" which was set at login to authorize the user's request
-    # if there' not token -> halt process
+    # using the "access_token" which was set at login to authorize the user's request
     token = request.cookies["access_token"]
+    # if there's not token -> halt process
     if not token:
         return jsonify({"Unauthorized": "No token"})
     # verify and decode the token 
     payload = verify_token(token, current_app.config['SECRET_KEY'])
     if isinstance(payload, dict):
+        # get user id for later usage
         user_id = payload["id"]
         cursor = mysql.connection.cursor()
         #  if a file is not sent in the request -> don't procceed.
@@ -48,10 +44,10 @@ def analyze_image_crops():
         if file.filename == '':
             flash('No image selected for uploading')
             return redirect(request.url)
-        # check if the file exists and its extension is allowd
+        # check if the file exists and its extension is allowed
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            # file is saved in the upload folder
+            # get the file as paren_dir fir the crops and create it in the system
             parent_dir = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(parent_dir)
             # prepare return data
@@ -67,7 +63,7 @@ def analyze_image_crops():
             mysql.connection.commit()
             cursor.close()
             if result:
-                # success
+                # success -> return all atb details to mobile
                 response_data = {'analysed crops': num_of_crops, 'crops details': data}           
                 return jsonify(response_data)
     else:
