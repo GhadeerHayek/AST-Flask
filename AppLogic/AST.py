@@ -69,6 +69,7 @@ def process_image_to_crops(img_name):
         # get the radius of the inhibition zone.
         radius = ((atb.inhibition.diameter)/2*ast.px_per_mm)
         roi_dict['img_name'] = cropped_image_name
+        roi_dict['label'] = atb.short_name
         roi_dict['img_folder'] = img_dir
         roi_dict['centerX'] = atb.center_in_roi[0]
         roi_dict['centerY'] = atb.center_in_roi[1]

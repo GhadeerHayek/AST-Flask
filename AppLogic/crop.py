@@ -18,14 +18,16 @@ def allowed_file(filename):
 """
     This route indicates an API endpoint, it recieves an image through post request. 
     The image is analyzed, its ROIs are extracted, cropped and saved to crop directory.
+    TODO: verify data types in db
 """
 
 
 @crop_blueprint.route('/process/crops', methods=['POST'])
 def analyze_image_crops():
+    # TODO: one function to verify tokens
     # using the "access_token" which was set at login to authorize the user's request
     token = request.cookies["access_token"]
-    # if there's not token -> halt process
+    # if there's no token -> halt process
     if not token:
         return jsonify({"Unauthorized": "No token"})
     # verify and decode the token 
@@ -34,38 +36,39 @@ def analyze_image_crops():
         # get user id for later usage
         user_id = payload["id"]
         cursor = mysql.connection.cursor()
-        #  if a file is not sent in the request -> don't procceed.
-        if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-        # if a file key exists, then fetch the file from the request
-        file = request.files['file']
-        # if the file has no name -> don't procceed.
-        if file.filename == '':
-            flash('No image selected for uploading')
-            return redirect(request.url)
-        # check if the file exists and its extension is allowed
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            # get the file as paren_dir fir the crops and create it in the system
-            parent_dir = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(parent_dir)
-            # prepare return data
-            num_of_crops, data = AST.process_image_to_crops(filename)
-            # prepare sql statement
-            query = "INSERT INTO cropped_antibiotics (test_id, path, parent_directory) VALUES (%s, %s, %s)"
-            result = ""
+        # prepare return data
+        # filename will be fetched according to the "test_id"
+        test_id = request.form['test_id']
+        test_id_query = "SELECT img FROM tests where id=%(test_id)s"
+        cursor.execute(test_id_query, {'test_id':test_id})
+        # to fetch the id as a string returned from the query
+        parent_dir_filename = cursor.fetchone()[0]
+        # then use the filename
+        num_of_crops, data = AST.process_image_to_crops(parent_dir_filename)
+        # prepare sql statement
+        query = """INSERT INTO cropped_antibiotics 
+        (test_id, img_name, label, path, parent_directory, centerX, centerY, width, height, inhibition_radius) 
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+        result = ""
+        atb_ids = []
+        # inside a (try catch) to ensure (result) is always executed right
+        try : 
             # loop through each antibiotic to insert it to db  
             for atb in data:
-                values = (1, atb["img_folder"], parent_dir )
+                atb_data = {}
+                values = (test_id, atb["img_name"], atb["label"], atb["img_folder"], parent_dir_filename, atb["centerX"], atb["centerY"], atb["width"], atb["height"], atb["inhibition_radius"])
                 result = cursor.execute(query, values)
-            # user commit to make the insertion permenant
-            mysql.connection.commit()
-            cursor.close()
-            if result:
-                # success -> return all atb details to mobile
-                response_data = {'analysed crops': num_of_crops, 'crops details': data}           
-                return jsonify(response_data)
+                atb_data['img_id'] = cursor.lastrowid
+                atb_ids.append(atb_data)
+        except Exception as e: 
+            mysql.connection.rollback()
+            return jsonify({'error': str(e)})
+        # user commit to make the insertion permenant
+        mysql.connection.commit()
+        cursor.close()
+        if result:
+            # success -> return atb ids 
+            return jsonify({"num of crops":len(atb_ids)}, atb_ids)
     else:
         return jsonify({"error": payload})
     
@@ -79,21 +82,44 @@ def analyze_image_crops():
 
 @crop_blueprint.route('/fetch/crop', methods=['POST'])
 def get_crop():
-    # if image name and its path not in the request -> don't procceed.
-    if 'img_name' not in request.form and 'img_path' not in request.form:
-        return "No image is provided!"
-    # fetch image name and path from the request
-    img_name = request.form['img_name']
-    img_path = request.form['img_path']
-    # if the image name or its path are empty -> don't procceed.
-    if img_name == '' or img_path == '':
-        # img_name is dummy -> not acceptable
-        return "Blank/empty images are not acceptable!"
-    # but if it exists and its extension is allowed
-    if img_name and allowed_file(img_name):
-        # fetch the image specified, and send it.
-        img = os.path.join(img_path, img_name)
-        return send_file(img)
+    # using the "access_token" which was set at login to authorize the user's request
+    token = request.cookies["access_token"]
+    # if there's not token -> halt process
+    if not token:
+        return jsonify({"Unauthorized": "No token"})
+    # verify and decode the token 
+    payload = verify_token(token, current_app.config['SECRET_KEY'])
+    if isinstance(payload, dict):
+        # get user id for later usage
+        user_id = payload["id"]
+        # if image name and its path not in the request -> don't procceed.
+        if 'img_id' not in request.form:
+            return "No image is provided!"
+        # fetch image name and path from the request
+        img_id = request.form['img_id']
+        # img_path = request.form['img_path']
+        # if the image name or its path are empty -> don't procceed.
+        if img_id == '':
+            # img_name is dummy -> not acceptable
+            return "Blank/empty images are not acceptable!"
+        # but if it exists and its extension is allowed
+        if img_id:
+            # # fetch the image specified, and send it.
+            # img = os.path.join(img_path, img_name)
+            # return send_file(img)
+            cursor = mysql.connection.cursor()
+            query = "SELECT img_path, img_name FROM cropped_antibiotics WHERE id=%(img_id)s"
+            cursor.execute(query, {'img_id' : img_id})
+            result = cursor.fetchone()
+            img_path, img_name = result
+            cursor.close()
+            if result:
+                if len(result) > 0:
+                    img = os.path.join(img_path, img_name)
+            else:
+                return jsonify({"status": "error", "message": "Invalid credentials, login failed"})
+    else:
+        return jsonify({"error": payload})
 
 @crop_blueprint.route('/')
 def mock_route():
