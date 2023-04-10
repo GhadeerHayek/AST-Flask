@@ -22,7 +22,7 @@ app = current_app
 
 
 def generate_image_crops(ast):
-    # creating a directory for a single AST image to save its cropped ROIs to it.
+    # creating a directory for a single AST image to save its cropped ROIs to it
     newDirName = 'cropped-AST-'+str(time.time())
     parentDir = app.config['CROP_FOLDER']
     newDirPath = os.path.join(parentDir, newDirName)

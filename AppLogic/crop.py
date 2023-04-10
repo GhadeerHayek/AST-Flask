@@ -1,10 +1,13 @@
 import os
 import urllib.request
-from flask import Flask, flash, request, redirect, send_file, Blueprint
+from flask import Flask, flash, request, redirect, send_file, Blueprint, current_app
 from app import app
 from werkzeug.utils import secure_filename
 from AppLogic import AST as AST
+from AppLogic.token import verify_token
 import astimp
+import jwt
+from database import mysql 
 from imageio.v2 import imread, imwrite
 from flask.json import jsonify
 
@@ -23,28 +26,53 @@ def allowed_file(filename):
 """
 
 
-@crop_blueprint.route('/process/crops', methods=['post'])
+@crop_blueprint.route('/process/crops', methods=['POST'])
 def analyze_image_crops():
-    #  if a file is not sent in the request -> don't procceed.
-    if 'file' not in request.files:
-        flash('No file part')
-        return redirect(request.url)
-    # if a file key exists, then fetch the file from the request
-    file = request.files['file']
-    # if the file has no name -> don't procceed.
-    if file.filename == '':
-        flash('No image selected for uploading')
-        return redirect(request.url)
-    # check if the file exists and its extension is allowd
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        # file is saved in the upload folder
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        # save image to upload directory then process it to crops
-        num_of_crops, data = AST.process_image_to_crops(filename)
-        # prepare return data
-        response_data = {'analysed crops': num_of_crops, 'crops details': data}
-        return jsonify(response_data)
+    # using the "acess_token" which was set at login to authorize the user's request
+    # if there' not token -> halt process
+    token = request.cookies["access_token"]
+    if not token:
+        return jsonify({"Unauthorized": "No token"})
+    # verify and decode the token 
+    payload = verify_token(token, current_app.config['SECRET_KEY'])
+    if isinstance(payload, dict):
+        user_id = payload["id"]
+        cursor = mysql.connection.cursor()
+        #  if a file is not sent in the request -> don't procceed.
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        # if a file key exists, then fetch the file from the request
+        file = request.files['file']
+        # if the file has no name -> don't procceed.
+        if file.filename == '':
+            flash('No image selected for uploading')
+            return redirect(request.url)
+        # check if the file exists and its extension is allowd
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            # file is saved in the upload folder
+            parent_dir = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(parent_dir)
+            # prepare return data
+            num_of_crops, data = AST.process_image_to_crops(filename)
+            # prepare sql statement
+            query = "INSERT INTO cropped_antibiotics (test_id, path, parent_directory) VALUES (%s, %s, %s)"
+            result = ""
+            # loop through each antibiotic to insert it to db  
+            for atb in data:
+                values = (1, atb["img_folder"], parent_dir )
+                result = cursor.execute(query, values)
+            # user commit to make the insertion permenant
+            mysql.connection.commit()
+            cursor.close()
+            if result:
+                # success
+                response_data = {'analysed crops': num_of_crops, 'crops details': data}           
+                return jsonify(response_data)
+    else:
+        return jsonify({"error": payload})
+    
 
 
 """
@@ -53,8 +81,8 @@ def analyze_image_crops():
 """
 
 
-@crop_blueprint.route('/sendimg', methods=["POST"])
-def send_img():
+@crop_blueprint.route('/fetch/crop', methods=['POST'])
+def get_crop():
     # if image name and its path not in the request -> don't procceed.
     if 'img_name' not in request.form and 'img_path' not in request.form:
         return "No image is provided!"
