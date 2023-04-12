@@ -4,6 +4,7 @@ from flask import Flask, Blueprint, jsonify, request, make_response
 from database import mysql
 import jwt
 from AppLogic import token as token_logic
+from AppLogic import helper  
 
 # routes blueprint
 auth_blueprint = Blueprint("auth", __name__)
@@ -21,14 +22,8 @@ def perform_signup():
     username = request.form['username']
     password = request.form['password']
     email = request.form['email']
-    # check inputs from being empty, ensure they're strings, and trim any leading or trailing spaces
-    check_username_condition = username and isinstance(
-        username, str) and username.strip()
-    check_password_condition = password and isinstance(
-        password, str) and password.strip()
-    check_email_condition = email and isinstance(email, str) and email.strip()
     # check all inputs to add to database
-    if check_username_condition and check_password_condition and check_email_condition:
+    if helper.validate_string(username) and helper.validate_string(password) and helper.validate_email(email):
         u_query = "SELECT email from users where email = %(user_email)s;"
         u_cursor = mysql.connection.cursor()
         u_cursor.execute(u_query, {"user_email": email})
@@ -65,11 +60,9 @@ def perform_login():
     username = request.form['username']
     password = request.form['password']
     # check inputs from being empty, ensure they're strings, and trim any leading or trailing spaces
-    check_username_condition = username and isinstance(
-        username, str) and username.strip()
-    check_password_condition = password and isinstance(
-        password, str) and password.strip()
-    if check_username_condition and check_password_condition:
+    u = helper.validate_string(username)
+    p = helper.validate_string(password)
+    if u and p:
         # check for credentials
         cursor = mysql.connection.cursor()
         query = " SELECT * from users where name =%(username)s and password= %(password)s "
@@ -89,3 +82,5 @@ def perform_login():
         # no match credentials
         else:
             return jsonify({"status": "error", "message": "Invalid credentials, login failed"})
+    else:
+        return jsonify({"status":"failure", "message":"invalid input", "u":u , "p":p})
