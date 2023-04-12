@@ -48,9 +48,8 @@ def generate_image_crops(ast):
 """
 
 
-def process_image_to_crops(img_name):
+def process_image_to_crops(img_path):
     # get the image from the upload folder
-    img_path = os.path.join(app.config['UPLOAD_FOLDER'], img_name)
     img = imread(img_path)
     # create AST object
     ast = astimp.AST(img)

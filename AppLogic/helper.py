@@ -15,8 +15,9 @@ def validate_string(input):
     try:
         int(input) 
         float(input)
-    except ValueError:
         return False
+    except ValueError:
+        pass
     return True
 
 def validate_email(input):
