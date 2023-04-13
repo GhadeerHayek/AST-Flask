@@ -93,18 +93,32 @@ def get_crop():
         return "Blank/empty images are not acceptable!"
     # but if it exists and its extension is allowed
     if img_id:
-        # # fetch the image specified, and send it.
-        # img = os.path.join(img_path, img_name)
-        # return send_file(img)
+        # # fetch the image specified, and get all its details
         cursor = mysql.connection.cursor()
-        query = "SELECT img_path, img_name FROM cropped_antibiotics WHERE id=%(img_id)s"
+        query = "SELECT * FROM cropped_antibiotics WHERE id=%(img_id)s"
         cursor.execute(query, {'img_id': img_id})
-        result = cursor.fetchone()
-        img_path, img_name = result
-        cursor.close()
-        if result:
-            if len(result) > 0:
-                img = os.path.join(img_path, img_name)
+        resultAll = cursor.fetchone()
+        if resultAll:
+            img_path = resultAll[4]
+            img_name = resultAll[2]
+            # 
+            atb = {}
+            atb['img_id'] = resultAll[0]
+            atb['test_id'] = resultAll[1]
+            atb['label'] = resultAll[3]
+            atb['inhibition_radius'] = resultAll[10]
+            atb['centerX'] = resultAll[6]
+            atb['centerY'] = resultAll[7]
+            atb['width'] = resultAll[8]
+            atb['height'] = resultAll[9]
+            if len(resultAll) > 0:
+                img = os.path.join(img_path, img_name)                
+                response = send_file(img)
+                queryAll = "SELECT * FROM cropped_antibiotics WHERE id=%(img_id)s"
+                cursor.execute(queryAll, {'img_id' : img_id})
+                resultAll = cursor.fetchone()                
+                response.headers['atb-data'] = atb
+                return response
         else:
             return jsonify({"status": "error", "message": "Invalid credentials, login failed"})
 
