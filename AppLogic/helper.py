@@ -1,4 +1,6 @@
 import re 
+import json
+from database import mysql
 # NOTE: for validating requests and inputs, there's a python library that could do this kind of thing called 'Marshmallow' 
 # for every input you can write a set of validation rules 
 # i guess it's for later

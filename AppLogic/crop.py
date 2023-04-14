@@ -25,8 +25,7 @@ def analyze_image_crops():
         #reject 
         return jsonify({"status":"failure", "message":"invalid request, no token"})  
     token = request.cookies['access_token']
-    payload = check_token_validity(token)
-    user_id = payload["id"]
+    user_id = check_token_validity(token)['id']
     # NOTE on Ghadeer's edit:  I've added a line that checks if test_id exists before running tests
     test_id = request.form['test_id']
     test_id_query = "SELECT * from tests where id = %(test_id)s;"
