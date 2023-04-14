@@ -77,35 +77,60 @@ def analyze_image_crops():
 
 @crop_blueprint.route('/fetch/crop', methods=['POST'])
 def get_crop():
+    # user_id = check_token_validity(request.cookies["access_token"])['id']
     payload = check_token_validity(request.cookies["access_token"])
     # get user id for later usage
-    user_id = payload["id"]
-    # if image name and its path not in the request -> don't procceed.
+    # user_id = payload["id"]
+    # if image id is not in the request -> don't procceed.
     if 'img_id' not in request.form:
-        return "No image is provided!"
-    # fetch image name and path from the request
+        return "No id is provided!"
+    # fetch image id from the request
     img_id = request.form['img_id']
-    # img_path = request.form['img_path']
-    # if the image name or its path are empty -> don't procceed.
+    # if the image id is empty -> don't procceed.
     if img_id == '':
-        # img_name is dummy -> not acceptable
-        return "Blank/empty images are not acceptable!"
-    # but if it exists and its extension is allowed
+        # img_id is dummy -> not acceptable
+        return "Blank ids are not acceptable!"
+    # but if it the id is a valid int proceed
     if img_id:
-        # # fetch the image specified, and send it.
-        # img = os.path.join(img_path, img_name)
-        # return send_file(img)
+        # create a cursor object
         cursor = mysql.connection.cursor()
-        query = "SELECT img_path, img_name FROM cropped_antibiotics WHERE id=%(img_id)s"
+        # get all the image's data
+        query = "SELECT * FROM cropped_antibiotics WHERE id=%(img_id)s"
+        # execute the query and pass the named placeholder
         cursor.execute(query, {'img_id': img_id})
-        result = cursor.fetchone()
-        img_path, img_name = result
-        cursor.close()
-        if result:
-            if len(result) > 0:
-                img = os.path.join(img_path, img_name)
+        # fetch the result
+        resultAll = cursor.fetchone()
+        # check if the query returned a result(ie. it's not None, which means it's true)
+        if resultAll:
+            # intREsult = len(resultAll)
+            # check the length of the result(if it only returned one item)
+            if len(resultAll) > 0:
+                # get the image path and name to send it to the user
+                img_path = resultAll[4]
+                img_name = resultAll[2]
+                # create an object to store all the image's details
+                atb = {}
+                # get image's data from the result
+                atb['img_id'] = resultAll[0]
+                atb['test_id'] = resultAll[1]
+                atb['label'] = resultAll[3]
+                atb['inhibition_radius'] = resultAll[10]
+                atb['centerX'] = resultAll[6]
+                atb['centerY'] = resultAll[7]
+                atb['width'] = resultAll[8]
+                atb['height'] = resultAll[9]
+                # join the image name and path to correctly locate the image in the file system and display it 
+                img = os.path.join(img_path, img_name)                
+                # send the image along with the response and display it
+                response = send_file(img)
+                # add the atb object to the response headers as a custom (atb-data) header
+                response.headers['atb-data'] = atb
+                return response
+            else:
+                # never occuring scenario but i guess an error that should be caught
+                return jsonify({"Status": "Error", "Message": "The image id you provided is a duplicate value that matches more than 1 image id"})
         else:
-            return jsonify({"status": "error", "message": "Invalid credentials, login failed"})
+            return jsonify({"Status": "Error", "Message": "The image id you provided doesn't match any stored image id"})
 
 
 @crop_blueprint.route('/')

@@ -13,7 +13,6 @@ def check_token_validity(token):
     # verify and decode the token 
     payload = verify_token(token, current_app.config['SECRET_KEY'])
     if isinstance(payload, dict):
-        # get user id for later usage
         return payload
     else:
         return jsonify({"error": payload})
