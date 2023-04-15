@@ -6,7 +6,7 @@ from flask import Flask, Blueprint, jsonify, request, current_app
 from database import mysql
 from werkzeug.utils import secure_filename
 from datetime import datetime
-from AppLogic.validate_token import check_token_validity
+from AppLogic.token import check_token_validity
 import os
 from AppLogic import helper
 
