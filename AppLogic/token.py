@@ -16,7 +16,7 @@ import jwt
 def generate_token(user_record, secret_key):
     # when do we want the token to be expired?
     # initially, let's make it 2 hours
-    exp_time = datetime.utcnow() + timedelta(hours=2)
+    exp_time = datetime.utcnow() + timedelta(hours=1)
     # prepare payload
     token_payload = {
         "id": user_record[0],
@@ -44,7 +44,7 @@ def verify_token(token, secret_key):
         if 'expire' in payload:
             exp_time = datetime.strptime(payload['expire'], '%Y-%m-%d %H:%M:%S')
             if datetime.utcnow() > exp_time:
-                return "token expired"
+                return False
             else: 
                 # token not expired and return data  
                 payload = {
@@ -54,18 +54,21 @@ def verify_token(token, secret_key):
                 }
                 return payload
         else:
-            "no expire"
+            return False 
     except jwt.exceptions.DecodeError:
         # if it reaches this line, this means that it's decoded incorrectly
-         return "invalid token"
+        return False
 
-def check_token_validity(token):
+"""
+    Helper function that checks the token to authorize the user
+"""
+def authorize_user(token):
     # if there's no token -> halt process
     if not token:
-        return jsonify({"Unauthorized": "No token"})
+        return jsonify({"Status":"Failure", "Message":"Unauthorized, no token"})
     # verify and decode the token 
     payload = verify_token(token, current_app.config['SECRET_KEY'])
     if isinstance(payload, dict):
         return payload
     else:
-        return jsonify({"error": payload})
+        return jsonify({"Status":"Failure", "Message": "User is not authorized."})
