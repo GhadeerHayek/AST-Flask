@@ -13,7 +13,9 @@ app.config.from_object(Config)
 # App routes blueprints 
 from AppLogic.crop import crop_blueprint as crop_routes
 from AppLogic.authentication import auth_blueprint as auth_routes
-
-
+from AppLogic.user_operations import user_op_blueprint as user_op_routes
+from AppLogic.tests_operations import test_op_blueprint as test_op_routes
 app.register_blueprint(crop_routes)
 app.register_blueprint(auth_routes)
+app.register_blueprint(user_op_routes)
+app.register_blueprint(test_op_routes)

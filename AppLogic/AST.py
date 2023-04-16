@@ -7,7 +7,6 @@ import astimp_tools
 from skimage.io import imread
 from PIL import Image
 from imageio.v2 import imread, imwrite
-from app import app
 import time
 
 app = current_app
@@ -22,7 +21,7 @@ app = current_app
 
 
 def generate_image_crops(ast):
-    # creating a directory for a single AST image to save its cropped ROIs to it.
+    # creating a directory for a single AST image to save its cropped ROIs to it
     newDirName = 'cropped-AST-'+str(time.time())
     parentDir = app.config['CROP_FOLDER']
     newDirPath = os.path.join(parentDir, newDirName)
@@ -48,9 +47,8 @@ def generate_image_crops(ast):
 """
 
 
-def process_image_to_crops(img_name):
+def process_image_to_crops(img_path):
     # get the image from the upload folder
-    img_path = os.path.join(app.config['UPLOAD_FOLDER'], img_name)
     img = imread(img_path)
     # create AST object
     ast = astimp.AST(img)
@@ -69,6 +67,7 @@ def process_image_to_crops(img_name):
         # get the radius of the inhibition zone.
         radius = ((atb.inhibition.diameter)/2*ast.px_per_mm)
         roi_dict['img_name'] = cropped_image_name
+        roi_dict['label'] = atb.short_name
         roi_dict['img_folder'] = img_dir
         roi_dict['centerX'] = atb.center_in_roi[0]
         roi_dict['centerY'] = atb.center_in_roi[1]
