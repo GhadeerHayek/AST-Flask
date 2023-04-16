@@ -7,8 +7,8 @@ from database import mysql
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from AppLogic.token import check_token_validity
+from AppLogic import helper 
 import os
-from AppLogic import helper
 
 
 # routes blueprint
@@ -25,13 +25,13 @@ test_op_blueprint = Blueprint("test_op", __name__)
 @test_op_blueprint.route('/test/create', methods=['POST'])
 def create_user_test():
     if 'file' not in request.files:
-        return jsonify({"status": "failure", "message": "No file provided"})
+        return jsonify({"Status": "Failure", "Message": "No file provided"})
     if 'bacteria' not in request.form:
-        return jsonify({"status": "failure", "message": "No bacteria input provided"})
+        return jsonify({"Status": "Failure", "Message": "No bacteria input provided"})
     if 'sample_type' not in request.form:
-        return jsonify({"status": "failure", "message": "No sample type input provided"})
+        return jsonify({"Status": "Failure", "Message": "No sample type input provided"})
     if 'access_token' not in request.cookies:
-        return jsonify({"status": "failure", "message": "invalid request, no token"})
+        return jsonify({"Status": "Failure", "Message": "invalid request, no token"})
     file = request.files['file']
     bacteria = request.form['bacteria']
     sample_type = request.form['sample_type']
@@ -49,12 +49,12 @@ def create_user_test():
                        "created_at": datetime.strftime(datetime.utcnow(), '%Y-%m-%d %H:%M:%S'), "img": img_path})
         test_id = cursor.lastrowid
         if test_id is None:
-            return jsonify({"status": "failure", "message": "Insertion failed"})
+            return jsonify({"Status": "Failure", "Message": "Insertion failed"})
         mysql.connection.commit()
         cursor.close()
-        return jsonify({"status": "sucess", "message": "Insertion was successful", "test_id": str(test_id)})
+        return jsonify({"Status": "Sucess", "Message": "Insertion was successful", "test_id": str(test_id)})
     else:
-        return jsonify({"status": "failure", "message": "input format not valid"})
+        return jsonify({"Status": "Failure", "Message": "Invalid input"})
 
 
 """
@@ -68,17 +68,20 @@ def create_user_test():
 # TODO
 def save_user_adjustments():
     if 'access_token' not in request.cookies:
-        return jsonify({"status": "failure", "message": "invalid request, no token"})
+        return jsonify({"Status":"Failure", "Message": "Invalid request, no token"})
     if 'test_id' not in request.form:
-        return jsonify({"status": "failure", "message": "invalid request, no test_id"})
+        return jsonify({"Status":"Failure", "Message": "Invalid request, no test_id"})
     if 'image_info' not in request.form:
-        return jsonify({"status": "failure", "message": "invalid request, no data"})
+        return jsonify({"Status":"Failure", "Message": "Invalid request, no data"})
     token = request.cookies['access_token']
-    test_id = int(request.form['test_id'])
+    try:
+        test_id = int(request.form['test_id'])
+    except ValueError:
+        return jsonify({"Status":"Failure", "Message":"Test ID format is not recognized"})
     json_response = request.form['image_info']
     payload = check_token_validity(token)
     if not payload:
-        return jsonify({"status":"failure", "message":"invalid token"})
+        return jsonify({"Status":"Failure", "Message":"Invalid token"})
     # validate test_id
     test_query = "SELECT * from tests where id = %(test_id)s"
     test_cursor = mysql.connection.cursor()
@@ -86,18 +89,14 @@ def save_user_adjustments():
     test_result = test_cursor.fetchone()
     test_cursor.close()
     if not test_result:
-        return jsonify({"status":"failure", "message":"no test with this id"})
+        return jsonify({"Status":"Failure", "Message":"No test with this id"})
     else:
-        # NOTE: parameterized query that insertes strings and integers at the same time is not working, i couldn't
-        # find a proper solution for it, so i am just gonna give up and stick to .format
-        # update_data_query = "UPDATE tests SET user_adjustments = %(data)s WHERE id = %(test_id)s"
-        update_data_query = "UPDATE tests SET user_adjustments = '{0}' WHERE id = {1}".format(json_response, test_id)
+        update_data_query = "UPDATE tests SET user_adjustments = %(data)s WHERE id = %(test_id)s"
         update_cursor = mysql.connection.cursor()
-        #update_cursor.execute(update_data_query, { "data": json_response,"test_id": test_id})
-        rows_affected = update_cursor.execute(update_data_query)
+        rows_affected = update_cursor.execute(update_data_query, { "data": json_response,"test_id": test_id})
         mysql.connection.commit()
         update_cursor.close()   
         if rows_affected is None:
-            return jsonify({"status": "failure", "message": "failed to update the values"})
+            return jsonify({"Status":"Failure", "Message": "failed to update the values"})
         else:
-            return jsonify({"status": "success", "message": "successfully updated the test, rows affected: {0}".format(rows_affected)})
+            return jsonify({"Status":"Success", "Message": "successfully updated the test, rows affected: {0}".format(rows_affected)})
