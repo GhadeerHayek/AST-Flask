@@ -5,7 +5,7 @@
 from flask import Flask, Blueprint,jsonify, current_app, request
 from database import mysql 
 import jwt
-from AppLogic.token import check_token_validity
+from AppLogic.token import authorize_user
 # routes blueprint
 user_op_blueprint = Blueprint("user_op", __name__)
 
@@ -22,8 +22,8 @@ def get_user_tests():
         return jsonify({"Status":"Failure", "Message": "Missing token"})
     # get payload(user's data) from the token 
     token = request.cookies['access_token']
-    payload = check_token_validity(token)
-    if payload is None:
+    payload = authorize_user(token)
+    if not payload:
         return jsonify({"Status":"Error", "Message":"Token not valid"})
     # get user id from the token 
     user_id = payload["id"]
