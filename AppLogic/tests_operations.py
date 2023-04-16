@@ -6,8 +6,8 @@ from flask import Flask, Blueprint, jsonify, request, current_app
 from database import mysql
 from werkzeug.utils import secure_filename
 from datetime import datetime
-from AppLogic.token import check_token_validity
-from AppLogic import helper 
+from AppLogic.token import authorize_user
+from AppLogic import helper
 import os
 
 
@@ -36,7 +36,7 @@ def create_user_test():
     bacteria = request.form['bacteria']
     sample_type = request.form['sample_type']
     token = request.cookies['access_token']
-    payload = check_token_validity(token)
+    payload = authorize_user(token)
     if payload and helper.validate_file(file) and helper.validate_string(bacteria) and helper.validate_string(sample_type):
         user_id = payload["id"]
         filename = secure_filename(file.filename)
@@ -65,38 +65,38 @@ def create_user_test():
 
 
 @test_op_blueprint.route('/test/confirmation', methods=['POST'])
-# TODO
 def save_user_adjustments():
     if 'access_token' not in request.cookies:
-        return jsonify({"Status":"Failure", "Message": "Invalid request, no token"})
+        return jsonify({"Status": "Failure", "Message": "Invalid request, no token"})
     if 'test_id' not in request.form:
-        return jsonify({"Status":"Failure", "Message": "Invalid request, no test_id"})
+        return jsonify({"Status": "Failure", "Message": "Invalid request, no test_id"})
     if 'image_info' not in request.form:
-        return jsonify({"Status":"Failure", "Message": "Invalid request, no data"})
+        return jsonify({"Status": "Failure", "Message": "Invalid request, no data"})
     token = request.cookies['access_token']
     try:
         test_id = int(request.form['test_id'])
-    except ValueError:
-        return jsonify({"Status":"Failure", "Message":"Test ID format is not recognized"})
-    json_response = request.form['image_info']
-    payload = check_token_validity(token)
-    if not payload:
-        return jsonify({"Status":"Failure", "Message":"Invalid token"})
-    # validate test_id
-    test_query = "SELECT * from tests where id = %(test_id)s"
-    test_cursor = mysql.connection.cursor()
-    test_cursor.execute(test_query, {"test_id":test_id})
-    test_result = test_cursor.fetchone()
-    test_cursor.close()
-    if not test_result:
-        return jsonify({"Status":"Failure", "Message":"No test with this id"})
-    else:
-        update_data_query = "UPDATE tests SET user_adjustments = %(data)s WHERE id = %(test_id)s"
-        update_cursor = mysql.connection.cursor()
-        rows_affected = update_cursor.execute(update_data_query, { "data": json_response,"test_id": test_id})
-        mysql.connection.commit()
-        update_cursor.close()   
-        if rows_affected is None:
-            return jsonify({"Status":"Failure", "Message": "failed to update the values"})
+        json_response = request.form['image_info']
+        payload = authorize_user(token)
+        if not payload:
+            return jsonify({"Status": "Failure", "Message": "Invalid token"})
+        # validate test_id
+        test_query = "SELECT * from tests where id = %(test_id)s"
+        test_cursor = mysql.connection.cursor()
+        test_cursor.execute(test_query, {"test_id": test_id})
+        test_result = test_cursor.fetchone()
+        test_cursor.close()
+        if not test_result:
+            return jsonify({"Status": "Failure", "Message": "No test with this id"})
         else:
-            return jsonify({"Status":"Success", "Message": "successfully updated the test, rows affected: {0}".format(rows_affected)})
+            update_data_query = "UPDATE tests SET user_adjustments = %(data)s WHERE id = %(test_id)s"
+            update_cursor = mysql.connection.cursor()
+            rows_affected = update_cursor.execute(
+                update_data_query, {"data": json_response, "test_id": test_id})
+            mysql.connection.commit()
+            update_cursor.close()
+            if rows_affected is None:
+                return jsonify({"Status": "Failure", "Message": "failed to update the values"})
+            else:
+                return jsonify({"Status": "Success", "Message": "successfully updated the test, rows affected: {0}".format(rows_affected)})
+    except ValueError:
+        return jsonify({"Status": "Failure", "Message": "Test ID format is not recognized"})
