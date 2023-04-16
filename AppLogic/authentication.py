@@ -74,13 +74,12 @@ def perform_login():
         # no match, no user
         if result is None:
             return jsonify({"Status": "Failure", "Message": "Credentials not found, login failed"})
-        else:
-            token = token_logic.generate_token(
-                result, current_app.config['SECRET_KEY'])
-            # prepare response
-            response = make_response(
-                jsonify({"Status": "Success", "Message": "token is generated successfully."}))
-            response.set_cookie('access_token', token, httponly=True)
-            return response
+        token = token_logic.generate_token(
+            result, current_app.config['SECRET_KEY'])
+        # prepare response
+        response = make_response(
+            jsonify({"Status": "Success", "Message": "token is generated successfully."}))
+        response.set_cookie('access_token', token, httponly=True)
+        return response
     else:
         return jsonify({"Status": "Failure", "Message": "invalid input"})

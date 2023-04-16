@@ -45,14 +45,13 @@ def verify_token(token, secret_key):
             exp_time = datetime.strptime(payload['expire'], '%Y-%m-%d %H:%M:%S')
             if datetime.utcnow() > exp_time:
                 return False
-            else: 
-                # token not expired and return data  
-                payload = {
-                    "id": payload["id"],
-                    "name": payload["name"],
-                    "email": payload["email"],
-                }
-                return payload
+            # token not expired and return data  
+            payload = {
+                "id": payload["id"],
+                "name": payload["name"],
+                "email": payload["email"],
+            }
+            return payload
         else:
             return False 
     except jwt.exceptions.DecodeError:
