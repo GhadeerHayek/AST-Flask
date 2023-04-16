@@ -7,7 +7,6 @@ import astimp_tools
 from skimage.io import imread
 from PIL import Image
 from imageio.v2 import imread, imwrite
-from app import app
 import time
 
 app = current_app
