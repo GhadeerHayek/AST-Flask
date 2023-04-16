@@ -87,16 +87,15 @@ def save_user_adjustments():
         test_cursor.close()
         if not test_result:
             return jsonify({"Status": "Failure", "Message": "No test with this id"})
+        update_data_query = "UPDATE tests SET user_adjustments = %(data)s WHERE id = %(test_id)s"
+        update_cursor = mysql.connection.cursor()
+        rows_affected = update_cursor.execute(
+            update_data_query, {"data": json_response, "test_id": test_id})
+        mysql.connection.commit()
+        update_cursor.close()
+        if rows_affected is None:
+            return jsonify({"Status": "Failure", "Message": "failed to update the values"})
         else:
-            update_data_query = "UPDATE tests SET user_adjustments = %(data)s WHERE id = %(test_id)s"
-            update_cursor = mysql.connection.cursor()
-            rows_affected = update_cursor.execute(
-                update_data_query, {"data": json_response, "test_id": test_id})
-            mysql.connection.commit()
-            update_cursor.close()
-            if rows_affected is None:
-                return jsonify({"Status": "Failure", "Message": "failed to update the values"})
-            else:
-                return jsonify({"Status": "Success", "Message": "successfully updated the test, rows affected: {0}".format(rows_affected)})
+            return jsonify({"Status": "Success", "Message": "successfully updated the test, rows affected: {0}".format(rows_affected)})
     except ValueError:
         return jsonify({"Status": "Failure", "Message": "Test ID format is not recognized"})
