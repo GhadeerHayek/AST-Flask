@@ -165,22 +165,14 @@ def get_petri_dish():
         # get the image path from database 
         img_path = resultAll[5]
         # call the draw dish 
-        
         processed_img_path = draw.draw_petri_dish(img_path)
         # save the path in the database for further processing 
-        
-
-        # ========================== TODO: fix the query ========================================
-
-        # query = """UPDATE tests SET processed_image = %(processed_img_path)s WHERE id = $(test_id)"""
-        # cursor.execute(query, {'processed_img_path': processed_img_path, 'test_id':test_id})
-        # test_id = cursor.lastrowid
-        # if test_id is None:
-        #     return jsonify({"Status": "Failure", "Message": "Update failed"})
-        # mysql.connection.commit()
-
-        # ========================================================================================
-
+        query = """UPDATE tests SET processed_image = %(processed_img_path)s WHERE id = %(test_id)s"""
+        cursor.execute(query, {'processed_img_path': processed_img_path, 'test_id':test_id})
+        test_id = cursor.lastrowid
+        if test_id is None:
+            return jsonify({"Status": "Failure", "Message": "Update failed"})
+        mysql.connection.commit()
 
         cursor.close()
         # send the image 
