@@ -65,7 +65,7 @@ def create_user_test():
 
 
 @test_op_blueprint.route('/test/confirmation', methods=['POST'])
-def save_user_adjustments():
+def save_mobile_result():
     if 'access_token' not in request.cookies:
         return jsonify({"Status": "Failure", "Message": "Invalid request, no token"})
     if 'test_id' not in request.form:
@@ -87,7 +87,7 @@ def save_user_adjustments():
         test_cursor.close()
         if not test_result:
             return jsonify({"Status": "Failure", "Message": "No test with this id"})
-        update_data_query = "UPDATE tests SET user_adjustments = %(data)s WHERE id = %(test_id)s"
+        update_data_query = "UPDATE tests SET mobile_result = %(data)s WHERE id = %(test_id)s"
         update_cursor = mysql.connection.cursor()
         rows_affected = update_cursor.execute(
             update_data_query, {"data": json_response, "test_id": test_id})
