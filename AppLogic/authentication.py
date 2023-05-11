@@ -61,10 +61,10 @@ def perform_signup():
 @auth_blueprint.route('/auth/login', methods=['POST'])
 def perform_login():
     # receive inputs
-    email = request.form['username']
+    email = request.form['email']
     password = request.form['password']
     # check inputs
-    if helper.validate_string(username) and helper.validate_string(password):
+    if helper.validate_email(email) and helper.validate_string(password):
         # check for credentials
         cursor = mysql.connection.cursor()
         query = " SELECT * from users where email =%(email)s"
