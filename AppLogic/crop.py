@@ -4,6 +4,7 @@ import jwt
 from flask import Flask, flash, request, redirect, send_file, Blueprint, current_app, jsonify
 from werkzeug.utils import secure_filename
 from AppLogic import AST as AST
+from AppLogic import draw as draw
 from AppLogic.token import authorize_user
 from database import mysql
 
@@ -127,4 +128,53 @@ def get_crop():
     return response
 
 
-    
+#TODO: refactor this method in a good file later
+
+@crop_blueprint.route('/fetch/draw', methods=['POST'])
+def get_petri_dish():
+    # check if the access token exists
+    if 'access_token' not in request.cookies:
+        return jsonify({"Status": "Failure", "Message": "Invalid request, no token"})
+    # get payload(user's data) from the token
+    token = request.cookies['access_token']
+    payload = authorize_user(token)
+    if not payload:
+        return jsonify({"Status": "Failure", "Message": "User not authorized"})
+    # if test id is not in the request -> don't procceed.
+    if 'test_id' not in request.form:
+        return jsonify({"Status": "Failure", "Message": "No test id is provided!"})
+    # fetch image id from the request
+    test_id = request.form['test_id']
+    cursor = mysql.connection.cursor()
+    # get all the image's data
+    query = """SELECT * FROM tests WHERE id=%(test_id)s"""
+    # execute the query and pass the named placeholder
+    cursor.execute(query, {'test_id': test_id})
+    # fetch the result
+    resultAll = cursor.fetchone()
+    # check if the query returned a result(i.e. it's not None, which means it's true)
+    if resultAll is None:
+        return jsonify({"Status": "Error", "Message": "The test id you provided doesn't match any stored test id"})
+    # if the dish has already been drawn and proccessed -> just fetch the image 
+    processed_image	= resultAll[7]
+    if processed_image:
+        # send the image 
+        response = send_file(processed_image)
+        return response 
+    else:
+        # get the image path from database 
+        img_path = resultAll[5]
+        # call the draw dish 
+        processed_img_path = draw.draw_petri_dish(img_path)
+        # save the path in the database for further processing 
+        query = """UPDATE tests SET processed_image = %(processed_img_path)s WHERE id = %(test_id)s"""
+        cursor.execute(query, {'processed_img_path': processed_img_path, 'test_id':test_id})
+        test_id = cursor.lastrowid
+        if test_id is None:
+            return jsonify({"Status": "Failure", "Message": "Update failed"})
+        mysql.connection.commit()
+
+        cursor.close()
+        # send the image 
+        response = send_file(processed_img_path)
+        return response

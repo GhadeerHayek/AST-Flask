@@ -3,7 +3,7 @@ from flask import Flask, Blueprint, jsonify, request, make_response, current_app
 from database import mysql
 import jwt
 from AppLogic import token as token_logic, helper
-
+from werkzeug.security import generate_password_hash, check_password_hash
 # routes blueprint
 auth_blueprint = Blueprint("auth", __name__)
 
@@ -30,24 +30,25 @@ def perform_signup():
         u_cursor.close()
         # email is unique,  insert
         if u_result is None:
+            hashed_pass = generate_password_hash(password, "sha256")
             i_query = "INSERT INTO users (name, email, password) VALUES (%(user_name)s, %(user_email)s, %(user_password)s);"
             i_cursor = mysql.connection.cursor()
             i_result = i_cursor.execute(
-                i_query, {"user_name": username, "user_email": email, "user_password": password})
+                i_query, {"user_name": username, "user_email": email, "user_password": hashed_pass})
             mysql.connection.commit()
             i_cursor.close()
             # insertion success
             if i_result:
-                return jsonify({"Status": "Success", "Message": "user is created, rows affected: {0}".format(str(i_result))})
+                return jsonify({"Status": "Success", "Message": "User is created, rows affected: {0}".format(str(i_result))})
             # insertion failure
             else:
-                return jsonify({"Status": "Failure", "Message": "failed to create"})
+                return jsonify({"Status": "Failure", "Message": "Failed to create"})
         # email is duplicated, no insertion
         else:
-            return jsonify({"Status": "Failure", "Message": "email is duplicated"})
+            return jsonify({"Status": "Failure", "Message": "Email is duplicated"})
     # input format not valid
     else:
-        return jsonify({"Status": "Failure", "Message": "invalid input"})
+        return jsonify({"Status": "Failure", "Message": "Invalid input"})
 
 
 """ 
@@ -60,20 +61,23 @@ def perform_signup():
 @auth_blueprint.route('/auth/login', methods=['POST'])
 def perform_login():
     # receive inputs
-    username = request.form['username']
+    email = request.form['email']
     password = request.form['password']
     # check inputs
-    if helper.validate_string(username) and helper.validate_string(password):
+    if helper.validate_email(email) and helper.validate_string(password):
         # check for credentials
         cursor = mysql.connection.cursor()
-        query = " SELECT * from users where name =%(username)s and password= %(password)s "
+        query = " SELECT * from users where email =%(email)s"
         cursor.execute(
-            query, {'username': username, "password": password})
+            query, {'email': email})
         result = cursor.fetchone()
-        cursor.close()
         # no match, no user
         if result is None:
-            return jsonify({"Status": "Failure", "Message": "Credentials not found, login failed"})
+            return jsonify({"Status": "Failure", "Message": "Incorrect username or password "}) 
+        correct_pass = check_password_hash(result[3], password)
+        cursor.close()
+        if correct_pass is False:
+            return jsonify({"Status": "Failure", "Message": "Incorrect username or password "}) 
         token = token_logic.generate_token(
             result, current_app.config['SECRET_KEY'])
         # prepare response

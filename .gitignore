@@ -1,0 +1,7 @@
+config.py
+static/crops/*
+!static/crops/.gitkeep 
+static/processed/*
+!static/processed/.gitkeep 
+static/uploads/*
+!static/uploads/.gitkeep 
