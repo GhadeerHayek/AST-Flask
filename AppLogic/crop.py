@@ -128,8 +128,6 @@ def get_crop():
     return response
 
 
-#TODO: refactor this method in a good file later
-
 @crop_blueprint.route('/fetch/draw', methods=['POST'])
 def get_petri_dish():
     # check if the access token exists
@@ -155,26 +153,26 @@ def get_petri_dish():
     # check if the query returned a result(i.e. it's not None, which means it's true)
     if resultAll is None:
         return jsonify({"Status": "Error", "Message": "The test id you provided doesn't match any stored test id"})
-    # if the dish has already been drawn and proccessed -> just fetch the image 
-    processed_image	= resultAll[7]
+    # if the dish has already been drawn and proccessed -> just fetch the image
+    processed_image = resultAll[7]
     if processed_image:
-        # send the image 
+        # send the image
         response = send_file(processed_image)
-        return response 
+        return response
     else:
-        # get the image path from database 
-        img_path = resultAll[5]
-        # call the draw dish 
-        processed_img_path = draw.draw_petri_dish(img_path)
-        # save the path in the database for further processing 
-        query = """UPDATE tests SET processed_image = %(processed_img_path)s WHERE id = %(test_id)s"""
-        cursor.execute(query, {'processed_img_path': processed_img_path, 'test_id':test_id})
+        # get the image path from database
+        img_path = result[5]
+        # call the draw dish
+        processed_img_path = AST.draw_petri_dish(img_path)
+        # save the path in the database for further processing
+        query = """UPDATE tests SET processed_image = %(processed_img_path) WHERE id = $(test_id)"""
+        cursor.execute(
+            query, {'processed_img_path': processed_img_path, 'test_id': test_id})
         test_id = cursor.lastrowid
         if test_id is None:
             return jsonify({"Status": "Failure", "Message": "Update failed"})
         mysql.connection.commit()
-
         cursor.close()
-        # send the image 
+        # send the image
         response = send_file(processed_img_path)
         return response

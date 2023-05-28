@@ -87,10 +87,7 @@ def save_mobile_result():
         test_cursor.close()
         if not test_result:
             return jsonify({"Status": "Failure", "Message": "No test with this id"})
-
-        # ========================== NOTE: this line changed =====================================
         update_data_query = "UPDATE tests SET mobile_result = %(data)s WHERE id = %(test_id)s"
-        # ========================================================================================
         update_cursor = mysql.connection.cursor()
         rows_affected = update_cursor.execute(
             update_data_query, {"data": json_response, "test_id": test_id})
