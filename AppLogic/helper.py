@@ -42,7 +42,7 @@ def validate_email(input):
         return valid_string
 
 
-ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif', 'jfif'])
 
 
 def allowed_file(filename):
