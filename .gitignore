@@ -5,3 +5,15 @@ static/processed/*
 !static/processed/.gitkeep 
 static/uploads/*
 !static/uploads/.gitkeep 
+AppLogic/__pycache__/AST.cpython-38.pyc
+AppLogic/__pycache__/authentication.cpython-38.pyc
+AppLogic/__pycache__/crop.cpython-38.pyc
+AppLogic/__pycache__/helper.cpython-38.pyc
+AppLogic/__pycache__/tests_operations.cpython-38.pyc
+script.ps1
+.ipynb_checkpoints
+.idea 
+__pycache__
+AppLogic/__pycache__
+AppLogic/__pycache__/draw.cpython-38.pyc
+AppLogic/__pycache__/helper.cpython-38.pyc
