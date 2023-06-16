@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 import matplotlib.pyplot as plt
 import astimp
 import astimp_tools
+from astimp_tools import draw
 from skimage.io import imread
 from PIL import Image
 from imageio.v2 import imread, imwrite
