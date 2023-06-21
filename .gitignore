@@ -13,7 +13,7 @@ AppLogic/__pycache__/tests_operations.cpython-38.pyc
 script.ps1
 .ipynb_checkpoints
 .idea 
-__pycache__
-AppLogic/__pycache__
-AppLogic/__pycache__/draw.cpython-38.pyc
-AppLogic/__pycache__/helper.cpython-38.pyc
+/__pycache__
+AppLogic/__pycache__/*
+/.idea
+/.ipynb_checkpoints
