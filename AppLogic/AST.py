@@ -1,22 +1,20 @@
 import os
 from flask import Flask, current_app
-from werkzeug.utils import secure_filename
 import matplotlib.pyplot as plt
 import astimp
 import astimp_tools
 from skimage.io import imread
-from PIL import Image
-from imageio.v2 import imread, imwrite
 from PIL import Image
 import numpy as np
 from matplotlib.patches import Circle
 import matplotlib.transforms as mtransforms
 import matplotlib.patches as mpatch
 from matplotlib.patches import FancyBboxPatch
-
-
+from imageio.v2 import imread, imwrite
 import time
 
+
+draw = astimp_tools.draw
 app = current_app
 
 """
@@ -90,7 +88,6 @@ def process_image_to_crops(img_path):
 
 
 def draw_petri_dish(img_path):
-    astimp.config.Inhibition_minPelletIntensity = 160
     plt.figure(figsize=(7, 7))
     img = imread(img_path)
     ast = astimp.AST(img)

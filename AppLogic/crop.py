@@ -161,11 +161,11 @@ def get_petri_dish():
         return response
     else:
         # get the image path from database
-        img_path = result[5]
+        img_path = resultAll[5]
         # call the draw dish
         processed_img_path = AST.draw_petri_dish(img_path)
         # save the path in the database for further processing
-        query = """UPDATE tests SET processed_image = %(processed_img_path) WHERE id = $(test_id)"""
+        query = """UPDATE tests SET processed_image = %(processed_img_path)s WHERE id = %(test_id)s"""
         cursor.execute(
             query, {'processed_img_path': processed_img_path, 'test_id': test_id})
         test_id = cursor.lastrowid

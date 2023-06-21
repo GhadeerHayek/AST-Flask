@@ -17,17 +17,8 @@ import time
 app = current_app
 draw = astimp_tools.draw
 
-astimp.config.Inhibition_diameterReadingSensibility = 0.0
-astimp.config.Inhibition_minInhibToBacteriaIntensityDiff = 25
-astimp.config.Inhibition_maxInhibToBacteriaIntensityDiff = 90
-astimp.config.Inhibition_minPelletIntensity = 160
-astimp.config.PetriDish_PelletIntensityPercent =0.92
-astimp.config.Inhibition_preprocImg_px_per_mm = 10
-astimp.config.PetriDish_gcBorder =0.02
-astimp.config.PetriDish_borderPelletDistance_in_mm=2
 
 def draw_petri_dish(img_path):
-    astimp.config.Inhibition_minPelletIntensity = 160
     plt.figure(figsize=(7, 7))
     img = imread(img_path)
     ast = astimp.AST(img)
