@@ -6,6 +6,7 @@ from flask import Flask, Blueprint,jsonify, current_app, request
 from database import mysql 
 import jwt
 from AppLogic.token import authorize_user
+from AppLogic.helper import create_message
 # routes blueprint
 user_op_blueprint = Blueprint("user_op", __name__)
 
@@ -19,12 +20,12 @@ user_op_blueprint = Blueprint("user_op", __name__)
 def get_user_tests():
     # check if the access token exists
     if "access_token" not in request.cookies:
-        return jsonify({"Status":"Failure", "Message": "Missing token"})
+        return create_message('Failure','Missing token' )
     # get payload(user's data) from the token 
     token = request.cookies['access_token']
     payload = authorize_user(token)
     if not payload:
-        return jsonify({"Status":"Error", "Message":"Token not valid"})
+        return create_message('Failure','Token not valid')
     # get user id from the token 
     user_id = payload["id"]
     cursor = mysql.connection.cursor()
@@ -39,5 +40,7 @@ def get_user_tests():
     # Convert result to list of dictionaries
     columns = [column[0] for column in cursor.description]
     result_dict = [dict(zip(columns, row)) for row in results]
+    ######################################## TODO: add optional key name parameter and its value to the create_message function or don't
+    ################ This commit is specified for this file only 
     return jsonify({"tests_count": results_count, "data": result_dict})                       
     

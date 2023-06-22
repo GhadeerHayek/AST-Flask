@@ -1,3 +1,8 @@
+"""
+    This file contains the drawing on image functionality 
+"""
+
+
 import os
 from flask import Flask, current_app
 import matplotlib.pyplot as plt
@@ -25,6 +30,6 @@ def draw_petri_dish(img_path):
     draw(ast, atb_labels='all')
     processed_image_name = 'processed-'+str(time.time())+'.jpg'
     processed_img_path = os.path.join(
-        app.config['PROCESSED_FOLDER'], processed_image_name)
+    app.config['PROCESSED_FOLDER'], processed_image_name)
     plt.savefig(processed_img_path)
     return processed_img_path
