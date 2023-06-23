@@ -24,6 +24,7 @@ draw = astimp_tools.draw
 
 
 def draw_petri_dish(img_path):
+    astimp.config.Inhibition_minPelletIntensity=160
     plt.figure(figsize=(7, 7))
     img = imread(img_path)
     ast = astimp.AST(img)

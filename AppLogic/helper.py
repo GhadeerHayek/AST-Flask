@@ -62,3 +62,6 @@ def validate_file(file):
     if not allowed_file(file.filename):
         return False
     return True
+
+def create_message(status, message):
+    return jsonify({"Status": "{}".format(status), "Message": "{}".format(message)}) 

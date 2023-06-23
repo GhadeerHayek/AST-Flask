@@ -7,7 +7,8 @@ from AppLogic import draw as draw
 from AppLogic.token import authorize_user
 from AppLogic.draw import draw_petri_dish
 from database import mysql
-
+from AppLogic import crop as crop
+from AppLogic import draw as draw
 ast_blueprint = Blueprint("ast", __name__)
 
 
@@ -43,7 +44,7 @@ def analyze_image_crops():
         # fetch the img path
         parent_dir_filename = result[5]
         # then use the filename
-        num_of_crops, data = AST.process_image_to_crops(parent_dir_filename)
+        num_of_crops, data = crop.process_image_to_crops(parent_dir_filename)
         # prepare sql statement
         query = """INSERT INTO cropped_antibiotics (test_id, img_name, label, path, parent_directory, centerX, centerY, width, height, inhibition_radius) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
         # to track all inserted ids and return them
@@ -155,7 +156,7 @@ def get_petri_dish():
         return jsonify({"Status": "Error", "Message": "The test id you provided doesn't match any stored test id"})
     # if the dish has already been drawn and proccessed -> just fetch the image
     processed_image = resultAll[7]
-    if processed_image:
+    if processed_image and os.path.isfile(processed_image):
         # send the image
         response = send_file(processed_image)
         return response
@@ -163,7 +164,7 @@ def get_petri_dish():
         # get the image path from database
         img_path = resultAll[5]
         # call the draw dish
-        processed_img_path = draw_petri_dish(img_path)
+        processed_img_path = draw.draw_petri_dish(img_path)
         # save the path in the database for further processing
         query = """UPDATE tests SET processed_image = %(processed_img_path)s WHERE id = %(test_id)s"""
         cursor.execute(

@@ -11,7 +11,7 @@ init_app(app)
 app.config.from_object(Config)
 
 # App routes blueprints 
-from AppLogic.ast import ast_blueprint as ast_routes
+from AppLogic.AST import ast_blueprint as ast_routes
 from AppLogic.authentication import auth_blueprint as auth_routes
 from AppLogic.user_operations import user_op_blueprint as user_op_routes
 from AppLogic.tests_operations import test_op_blueprint as test_op_routes
